@@ -1,0 +1,26 @@
+{
+	"FileVersion" : 3,
+	"FriendlyName" : "Tree Architect",
+	"Version" : 1,
+	"VersionName" : "0.1.0",
+	"CreatedBy" : "Ali Akbar",
+	"CreatedByURL" : "http://coderespawn.com",
+	"EngineVersion" : "4.11.0",
+	"Description" : "Procedural tree generator for UE4",
+	"Category" : "Procedural",
+	"EnabledByDefault" : true,
+	
+	"Modules" :
+	[
+		{
+			"Name" : "TreeArchitectRuntime",
+			"Type" : "Runtime"
+		},
+		{
+			"Name" : "TreeArchitectEditor",
+			"Type" : "Editor"
+		}
+	],
+
+	"CanContainContent" : true
+}
