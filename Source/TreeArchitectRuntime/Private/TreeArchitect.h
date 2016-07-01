@@ -2,7 +2,11 @@
 
 #pragma once
 #include "TreeThemeAsset.h"
+#include "TreeMeshComponent.h"
+#include "Algorithm/SpaceColonization/TreeGenerator.h"
 #include "TreeArchitect.generated.h"
+
+class UTreeMeshComponent;
 
 UCLASS()
 class TREEARCHITECTRUNTIME_API ATreeArchitect : public AActor {
@@ -15,4 +19,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = Tree)
 	UTreeThemeAsset* TreeTheme;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tree)
+	UTreeMeshComponent* TreeMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tree)
+	UMaterialInterface* Material;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Tree)
+	FTreeConfig TreeConfig;
 };

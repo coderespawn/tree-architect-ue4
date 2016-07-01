@@ -8,5 +8,5 @@
 
 #pragma once
 
-//DECLARE_STATS_GROUP(TEXT("LAProceduralMesh"), STATGROUP_LAProceduralMesh, STATCAT_Advanced);
-//DECLARE_STATS_GROUP(TEXT("LAProceduralMesh"), STATGROUP_LAMarchingCube, STATCAT_Advanced);
+DECLARE_STATS_GROUP(TEXT("TreeMesh"), STATGROUP_TreeMesh, STATCAT_Advanced);
+DECLARE_STATS_GROUP(TEXT("TreeMesh"), STATGROUP_TreeMarchingCube, STATCAT_Advanced);

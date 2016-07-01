@@ -2,110 +2,103 @@
 #include "TreeArchitectRuntimePrivatePCH.h"
 #include "Tree.h"
 
-//using namespace respawn::renderer;
-//using namespace respawn::math;
-//using namespace respawn;
-//using namespace minitree;
-//using namespace stl;
-//
-//int BranchNode::_idCounter = 0;
-//
-//
-//void minitree::SpaceNode::UpdateClosestNode( BranchNodePtr node )
-//{
-//	if (closestNode != node) {
-//		Point3 nodePosition = node->GetPosition();
-//		Vector3 delta = this->position - nodePosition;
-//		float distance2 = lengthSqr(delta);
-//		if (distance2 < distanceSqToClosestNode) {
-//			closestNode = node;
-//			distanceSqToClosestNode = distance2;
-//		}
-//	}
-//}
-//
-//minitree::SpaceNode::SpaceNode( const respawn::math::Point3& position, BranchNodePtr closestNode ) 
-//	: closestNode(closestNode), distanceSqToClosestNode(static_cast<float>(INT_MAX))
-//{
-//	this->position = position;
-//}
-//
-//minitree::BranchNode::BranchNode( BranchNodePtr parent, TreeDataPtr tree, const respawn::math::Point3& position ) 
-//		: parent(parent), tree(tree), thicknessUnits(0), vertexIndexBase(0), distanceFromRoot(0)
-//{
-//	id = ++_idCounter;
-//	this->position = position;
-//	attractionVector = Vector3(0, 0, 0);
-//}
-//
-//minitree::BranchNodePtr minitree::BranchNode::Grow(float outerDiameter)
-//{
-//	if (attractionVector == Vector3(0, 0, 0)) {
-//		// This node is not being influenced. do no grow on this node
-//		return BranchNodePtr();
-//	}
-//
-//	attractionVector = normalize(attractionVector);
-//	Vector3 offset = attractionVector * outerDiameter;
-//	return AddChild(position + offset);
-//}
-//
-//minitree::BranchNodePtr minitree::BranchNode::AddChild( const respawn::math::Point3& childPosition )
-//{
-//	BranchNodePtr child = BranchNodePtr(new BranchNode(shared_from_this(), tree, childPosition));
-//	children.push_back(child);
-//	return child;
-//}
-//
-//void minitree::BranchNode::InitializeForNextGrowth()
-//{
-//	// attractionVector = new Vector3.zero();
-//	attractionVector = Vector3(0, 0, 0);
-//}
-//
-//void minitree::BranchNode::Dispose()
-//{
-//	parent.reset();
-//	tree.reset();
-//	//children.clear();
-//	vertices.clear();
-//}
-//
-//
-//minitree::TreeData::TreeData()
-//{
-//}
-//
-//void minitree::TreeData::Init()
-//{
-//	root = BranchNodePtr(new BranchNode(BranchNodePtr(), shared_from_this(), respawn::math::Point3(0, 0, 0)));
-//}
-//
-//void minitree::TreeData::Dispose()
-//{
-//
-//	// Destroy all branch nodes in the tree
-//	TreeTraverser<TreeData> traverser;
-//	traverser.Traverse(shared_from_this(), this, &TreeData::_DisposeBranchNode);
-//
-//	root.reset();
-//	meshData.clear();
-//	spacePoints.clear();
-//	trunkGeometry.triangles.clear();
-//	trunkGeometry.vertices.clear();
-//	leavesGeometry.triangles.clear();
-//	leavesGeometry.vertices.clear();
-//}
-//
-//void minitree::TreeData::_DisposeBranchNode( BranchNodePtr node )
-//{
-//	if (node) {
-//		node->Dispose();
-//	}
-//}
-//
-//
-//bool minitree::TriangleData::operator<( const TriangleData& other )
-//{
-//	return distanceFromCamera > other.distanceFromCamera;
-//}
+int BranchNode::_idCounter = 0;
+
+
+void SpaceNode::UpdateClosestNode( BranchNodePtr node )
+{
+	if (closestNode != node) {
+		FVector nodePosition = node->GetPosition();
+		FVector delta = this->position - nodePosition;
+		float distance2 = delta.SizeSquared();
+		if (distance2 < distanceSqToClosestNode) {
+			closestNode = node;
+			distanceSqToClosestNode = distance2;
+		}
+	}
+}
+
+SpaceNode::SpaceNode( const FVector& position, BranchNodePtr closestNode ) 
+	: closestNode(closestNode), distanceSqToClosestNode(static_cast<float>(INT_MAX))
+{
+	this->position = position;
+}
+
+BranchNode::BranchNode( BranchNodePtr parent, TreeDataPtr tree, const FVector& position ) 
+		: parent(parent), tree(tree), thicknessUnits(0), vertexIndexBase(0), distanceFromRoot(0)
+{
+	id = ++_idCounter;
+	this->position = position;
+	attractionVector = FVector(0, 0, 0);
+}
+
+BranchNodePtr BranchNode::Grow(float outerDiameter)
+{
+	if (attractionVector == FVector(0, 0, 0)) {
+		// This node is not being influenced. do no grow on this node
+		return BranchNodePtr();
+	}
+
+	attractionVector.Normalize();
+	FVector offset = attractionVector * outerDiameter;
+	return AddChild(position + offset);
+}
+
+BranchNodePtr BranchNode::AddChild( const FVector& childPosition )
+{
+	BranchNodePtr child = BranchNodePtr(new BranchNode(SharedThis(this), tree, childPosition));
+	children.Add(child);
+	return child;
+}
+
+void BranchNode::InitializeForNextGrowth()
+{
+	// attractionVector = new FVector.zero();
+	attractionVector = FVector(0, 0, 0);
+}
+
+void BranchNode::Dispose()
+{
+	parent.Reset();
+	tree.Reset();
+	vertices.Reset();
+}
+
+
+TreeData::TreeData()
+{
+}
+
+void TreeData::Init()
+{
+	root = BranchNodePtr(new BranchNode(BranchNodePtr(), SharedThis(this), FVector(0, 0, 0)));
+}
+
+void TreeData::Dispose()
+{
+
+	// Destroy all branch nodes in the tree
+	TreeTraverser<TreeData> traverser;
+	traverser.Traverse(SharedThis(this), this, &TreeData::_DisposeBranchNode);
+
+	root.Reset();
+	meshData.Reset();
+	spacePoints.Reset();
+	trunkGeometry.triangles.Reset();
+	trunkGeometry.vertices.Reset();
+	leavesGeometry.triangles.Reset();
+	leavesGeometry.vertices.Reset();
+}
+
+void TreeData::_DisposeBranchNode( BranchNodePtr node )
+{
+	if (node.IsValid()) {
+		node->Dispose();
+	}
+}
+
+
+bool TriangleData::operator<( const TriangleData& other )
+{
+	return distanceFromCamera > other.distanceFromCamera;
+}
