@@ -68,7 +68,7 @@ public:
 	TreeGenerator();
 
 	/** Generates the branch structure and returns the root node */
-	TreeDataPtr Generate(const FTreeConfig& config);
+	TreeDataPtr Generate(UWorld* World, const FTreeConfig& config);
   
 	/**
 	* Called when a new branch node is added to the tree

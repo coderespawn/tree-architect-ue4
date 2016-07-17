@@ -2,6 +2,7 @@
 #include "TreeArchitectRuntimePrivatePCH.h"
 #include "TreeGenerator.h"
 #include "Tree.h"
+#include "Volumes/TreeVolume.h"
 
 FTreeConfig::FTreeConfig() 
 	: seed(0)
@@ -27,7 +28,7 @@ float FTreeConfig::GetOuterDiameter() const
 }
 
 
-TreeDataPtr TreeGenerator::Generate( const FTreeConfig& config )
+TreeDataPtr TreeGenerator::Generate( UWorld* World, const FTreeConfig& config )
 {
 	this->config = config;
 	TreeDataPtr tree = TreeDataPtr(new TreeData());
@@ -39,26 +40,33 @@ TreeDataPtr TreeGenerator::Generate( const FTreeConfig& config )
 	spacePoints.Reset(config.numSpacePoints);
 	FRandomStream Random;
 	Random.Initialize(config.seed);
-	for (int i = 0; i < config.numSpacePoints; i++) {
-		pointOnSphere = Random.GetUnitVector();
-		float depth = pow(Random.FRand(), 1 / 3.0f);
-		pointOnSphere = FVector(FVector(pointOnSphere) * (depth * config.attractionPointRadius));
-
-		/*
-		if (pointOnSphere.X < 0) {
-			pointOnSphere.Z *= 0.5f;
-		}
-		if (pointOnSphere.X > 0) {
-			pointOnSphere.X *= 1.25f;
-		} else {
-			pointOnSphere.X *= 0.75f;
-		}
-		*/
-
-		pointOnSphere.Z += config.heightOffset; //.setY(pointOnSphere.getY() + config.heightOffset);
-		SpaceNodePtr spaceNode(new SpaceNode(pointOnSphere, tree->GetRoot()));
-		spacePoints.Add(spaceNode);
-	}
+    
+    // Populate the points with tree volumes
+    for (TActorIterator<ATreeVolume> ActorItr(World); ActorItr; ++ActorItr)
+    {
+        ATreeVolume* TreeVolume = *ActorItr;
+        TreeVolume->GeneratePoints(Random, spacePoints);
+    }
+    
+    if (spacePoints.Num() == 0) {
+        // Add test points since no volumes were defined
+        for (int i = 0; i < config.numSpacePoints; i++) {
+            pointOnSphere = Random.GetUnitVector();
+            float depth = pow(Random.FRand(), 1 / 3.0f);
+            pointOnSphere = FVector(FVector(pointOnSphere) * (depth * config.attractionPointRadius));
+            
+            pointOnSphere.Z += config.heightOffset; //.setY(pointOnSphere.getY() + config.heightOffset);
+            SpaceNodePtr spaceNode = MakeShareable(new SpaceNode(pointOnSphere, nullptr)); //tree->GetRoot()));
+            spacePoints.Add(spaceNode);
+        }
+    }
+    
+    
+    // Initialize the closest point of the space nodes to the root node
+    for (SpaceNodePtr spaceNode : spacePoints) {
+        spaceNode->SetClosestNode(tree->GetRoot());
+    }
+    
 	tree->SetGenerationState(TreeGenerationState::AttractionPoints);
 
 	return tree;
@@ -77,10 +85,10 @@ void TreeGenerator::OnBranchNodeAdded( TreeDataPtr tree, BranchNodePtr node )
 	}
 }
 
-void TreeGenerator::Grow( TreeDataPtr tree, int maxFrames /*= 1*/, float maxProcessingTime /*= 16*/ )
+void TreeGenerator::Grow( TreeDataPtr tree, int maxFrames /*= 0*/, float maxProcessingTime /*= 16*/ )
 {
-	int framesElapsed = 0;
-	while (true) {
+    int framesElapsed = 0;
+    while (true) {
 		if (tree->GetGenerationState() != TreeGenerationState::SkeletonGenerationProgress) {
 			// Not in the correct state (or generation is done)
 			break;
@@ -99,6 +107,7 @@ void TreeGenerator::Grow( TreeDataPtr tree, int maxFrames /*= 1*/, float maxProc
 		//	// The max processing time has elapsed.  bail out
 		//	break;
 		//}
+        
 	}
 }
 
